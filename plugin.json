@@ -1,0 +1,13 @@
+{
+  "id": "knightonline-ui-chaos",
+  "name": "Chaos UI",
+  "version": "0.1.0",
+  "type": "ui-theme",
+  "era": "Fire Drake / Chaos",
+  "description": "The Fire Drake and Chaos generation of the Knight Online interface for LibreKO",
+  "author": "ZeusAFK",
+  "homepage": "https://github.com/ZeusAFK/LibreKO-knightonline-ui-chaos",
+  "assembly": "bin/KnightOnlineUiChaos.dll",
+  "entry": "KnightOnlineUiChaos.Plugin",
+  "minClientVersion": "0.1.0"
+}

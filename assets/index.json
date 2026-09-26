@@ -1,0 +1,427 @@
+{
+ "canvas": [
+  1024,
+  768
+ ],
+ "layouts": {
+  "co_chatting_box_us": {
+   "file": "layouts/co_chatting_box_us.json",
+   "rect": [
+    -2,
+    -1,
+    422,
+    152
+   ],
+   "textures": [
+    "main_ui_01.png",
+    "main_ui_02.png"
+   ]
+  },
+  "co_hotkey_us": {
+   "file": "layouts/co_hotkey_us.json",
+   "rect": [
+    -1,
+    -2,
+    428,
+    384
+   ],
+   "textures": [
+    "in01.png",
+    "main_ui_01.png"
+   ]
+  },
+  "co_hpbar_us": {
+   "file": "layouts/co_hpbar_us.json",
+   "rect": [
+    0,
+    0,
+    287,
+    72
+   ],
+   "textures": [
+    "main_ui_01.png",
+    "monstersp.png"
+   ]
+  },
+  "co_information_box_us": {
+   "file": "layouts/co_information_box_us.json",
+   "rect": [
+    4,
+    0,
+    268,
+    150
+   ],
+   "textures": [
+    "main_ui_01.png",
+    "main_ui_02.png"
+   ]
+  },
+  "co_inventory_us": {
+   "file": "layouts/co_inventory_us.json",
+   "rect": [
+    0,
+    0,
+    527,
+    563
+   ],
+   "textures": [
+    "co_cos.png",
+    "co_inventory.png",
+    "co_inventory02.png",
+    "co_pat_ui.png",
+    "main_ui_01.png",
+    "seed_op.png"
+   ]
+  },
+  "co_map1024_us": {
+   "file": "layouts/co_map1024_us.json",
+   "rect": [
+    0,
+    0,
+    1024,
+    783
+   ],
+   "textures": [
+    "cmdlist_dxt.png",
+    "co_map_oreads_1.png",
+    "co_map_oreads_2.png",
+    "co_map_oreads_3.png",
+    "seed_op.png",
+    "ui_del_map1024_01.png",
+    "ui_del_map1024_02.png",
+    "ui_del_map1024_03.png",
+    "ui_el_map1024_01.png",
+    "ui_el_map1024_02.png",
+    "ui_el_map1024_03.png",
+    "ui_gae2_map_01.png",
+    "ui_gae2_map_02.png",
+    "ui_gae2_map_03.png",
+    "ui_gae_map1024_01.png",
+    "ui_gae_map1024_02.png",
+    "ui_gae_map1024_03.png",
+    "ui_gejem01.png",
+    "ui_gejem02.png",
+    "ui_gejem03.png",
+    "ui_isl_map_01.png",
+    "ui_isl_map_02.png",
+    "ui_isl_map_03.png",
+    "ui_ka_map1024_01.png",
+    "ui_ka_map1024_02.png",
+    "ui_ka_map1024_03.png",
+    "ui_map_00.png",
+    "ui_mo_map1024_01.png",
+    "ui_mo_map1024_02.png",
+    "ui_mo_map1024_03.png"
+   ]
+  },
+  "co_minimap_us": {
+   "file": "layouts/co_minimap_us.json",
+   "rect": [
+    0,
+    0,
+    375,
+    327
+   ],
+   "textures": [
+    "alslaoq.png",
+    "apzmfh.png",
+    "co_battlezone_e_small.png",
+    "co_pat_ui.png",
+    "in01.png",
+    "main_ui_01.png",
+    "main_ui_02.png",
+    "ui_map_note.png"
+   ]
+  },
+  "co_msgboxok_us": {
+   "file": "layouts/co_msgboxok_us.json",
+   "rect": [
+    0,
+    0,
+    212,
+    111
+   ],
+   "textures": [
+    "ui_warfare.png"
+   ]
+  },
+  "co_msgboxokcancel_us": {
+   "file": "layouts/co_msgboxokcancel_us.json",
+   "rect": [
+    0,
+    0,
+    271,
+    105
+   ],
+   "textures": [
+    "ui_warfare_01.png"
+   ]
+  },
+  "co_page_state_us": {
+   "file": "layouts/co_page_state_us.json",
+   "rect": [
+    0,
+    53,
+    291,
+    415
+   ],
+   "textures": [
+    "co_inventory.png",
+    "co_inventory02.png"
+   ]
+  },
+  "co_quest_mini_tip_us": {
+   "file": "layouts/co_quest_mini_tip_us.json",
+   "rect": [
+    0,
+    0,
+    219,
+    72
+   ],
+   "textures": [
+    "main_ui_01.png",
+    "main_ui_02.png"
+   ]
+  },
+  "co_skill_us": {
+   "file": "layouts/co_skill_us.json",
+   "rect": [
+    0,
+    0,
+    346,
+    559
+   ],
+   "textures": [
+    "co_skill.png",
+    "co_skill2.png",
+    "main_ui_01.png"
+   ]
+  },
+  "co_targetbar_us": {
+   "file": "layouts/co_targetbar_us.json",
+   "rect": [
+    0,
+    0,
+    297,
+    57
+   ],
+   "textures": [
+    "main_ui_01.png",
+    "seed_op.png"
+   ]
+  },
+  "co_taskbar_main_us": {
+   "file": "layouts/co_taskbar_main_us.json",
+   "rect": [
+    0,
+    0,
+    1024,
+    41
+   ],
+   "textures": [
+    "main_ui_01.png",
+    "main_ui_02.png"
+   ]
+  },
+  "co_various_frame_us": {
+   "file": "layouts/co_various_frame_us.json",
+   "rect": [
+    0,
+    0,
+    291,
+    467
+   ],
+   "textures": [
+    "co_inventory.png",
+    "main_ui_01.png"
+   ]
+  }
+ },
+ "textures": {
+  "in01.png": [
+   512,
+   512
+  ],
+  "main_ui_02.png": [
+   512,
+   512
+  ],
+  "co_inventory.png": [
+   512,
+   512
+  ],
+  "main_ui_01.png": [
+   512,
+   512
+  ],
+  "seed_op.png": [
+   512,
+   512
+  ],
+  "monstersp.png": [
+   512,
+   512
+  ],
+  "co_inventory02.png": [
+   512,
+   512
+  ],
+  "ui_warfare.png": [
+   512,
+   512
+  ],
+  "co_skill2.png": [
+   512,
+   512
+  ],
+  "co_skill.png": [
+   512,
+   512
+  ],
+  "co_pat_ui.png": [
+   512,
+   512
+  ],
+  "ui_warfare_01.png": [
+   512,
+   512
+  ],
+  "co_cos.png": [
+   512,
+   512
+  ],
+  "apzmfh.png": [
+   512,
+   512
+  ],
+  "ui_map_00.png": [
+   512,
+   512
+  ],
+  "ui_ka_map1024_01.png": [
+   512,
+   512
+  ],
+  "ui_ka_map1024_02.png": [
+   512,
+   512
+  ],
+  "ui_ka_map1024_03.png": [
+   512,
+   512
+  ],
+  "ui_el_map1024_02.png": [
+   512,
+   512
+  ],
+  "ui_el_map1024_01.png": [
+   512,
+   512
+  ],
+  "ui_el_map1024_03.png": [
+   512,
+   512
+  ],
+  "ui_mo_map1024_01.png": [
+   512,
+   512
+  ],
+  "ui_mo_map1024_02.png": [
+   512,
+   512
+  ],
+  "ui_mo_map1024_03.png": [
+   512,
+   512
+  ],
+  "ui_del_map1024_01.png": [
+   512,
+   512
+  ],
+  "ui_del_map1024_02.png": [
+   512,
+   512
+  ],
+  "ui_del_map1024_03.png": [
+   512,
+   512
+  ],
+  "ui_gae_map1024_01.png": [
+   512,
+   512
+  ],
+  "ui_gae_map1024_02.png": [
+   512,
+   512
+  ],
+  "ui_gae_map1024_03.png": [
+   512,
+   512
+  ],
+  "ui_gae2_map_03.png": [
+   512,
+   512
+  ],
+  "ui_gae2_map_02.png": [
+   512,
+   512
+  ],
+  "ui_gae2_map_01.png": [
+   512,
+   512
+  ],
+  "cmdlist_dxt.png": [
+   512,
+   512
+  ],
+  "ui_gejem01.png": [
+   512,
+   512
+  ],
+  "ui_gejem02.png": [
+   512,
+   512
+  ],
+  "ui_gejem03.png": [
+   512,
+   512
+  ],
+  "ui_isl_map_01.png": [
+   512,
+   512
+  ],
+  "ui_isl_map_03.png": [
+   512,
+   512
+  ],
+  "ui_isl_map_02.png": [
+   512,
+   512
+  ],
+  "co_map_oreads_1.png": [
+   512,
+   512
+  ],
+  "co_map_oreads_2.png": [
+   512,
+   512
+  ],
+  "co_map_oreads_3.png": [
+   512,
+   512
+  ],
+  "ui_map_note.png": [
+   512,
+   512
+  ],
+  "co_battlezone_e_small.png": [
+   512,
+   512
+  ],
+  "alslaoq.png": [
+   512,
+   512
+  ]
+ },
+ "missingTextures": []
+}
