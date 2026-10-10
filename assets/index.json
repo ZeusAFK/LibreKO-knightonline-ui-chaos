@@ -235,6 +235,55 @@
     "co_inventory.png",
     "main_ui_01.png"
    ]
+  },
+  "co_whisper_close_us": {
+   "file": "layouts/co_whisper_close_us.json",
+   "rect": [
+    0,
+    0,
+    144,
+    21
+   ],
+   "textures": [
+    "main_ui_02.png"
+   ]
+  },
+  "co_whisper_open_us": {
+   "file": "layouts/co_whisper_open_us.json",
+   "rect": [
+    0,
+    0,
+    300,
+    196
+   ],
+   "textures": [
+    "main_ui_01.png",
+    "main_ui_02.png"
+   ]
+  },
+  "ka_messagebox_us": {
+   "file": "layouts/ka_messagebox_us.json",
+   "rect": [
+    0,
+    0,
+    327,
+    156
+   ],
+   "textures": [
+    "ui_message.png"
+   ]
+  },
+  "el_messagebox_us": {
+   "file": "layouts/el_messagebox_us.json",
+   "rect": [
+    0,
+    0,
+    327,
+    156
+   ],
+   "textures": [
+    "ui_message.png"
+   ]
   }
  },
  "textures": {
@@ -419,6 +468,10 @@
    512
   ],
   "alslaoq.png": [
+   512,
+   512
+  ],
+  "ui_message.png": [
    512,
    512
   ]

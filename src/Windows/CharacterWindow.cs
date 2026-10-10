@@ -24,6 +24,15 @@ public partial class CharacterWindow : Control
         ("Btn_MagicAttack", 4),
     };
 
+    private static readonly (string Text, int StatRow)[] StatTexts =
+    {
+        ("Text_Strength", 0),
+        ("Text_Stamina", 1),
+        ("Text_Dexterity", 2),
+        ("Text_Intelligence", 3),
+        ("Text_MagicAttack", 4),
+    };
+
     private readonly LayoutView _page;
     private readonly LayoutView _frame;
     private readonly PluginGame _game;
@@ -83,7 +92,7 @@ public partial class CharacterWindow : Control
         _page.SetText("Text_RealmPoint", c.Np.ToString("n0"));
         _page.SetText("Text_AP", c.Ap.ToString());
         _page.SetText("Text_GP", c.Ac.ToString());
-        _page.SetText("Text_Manner", "");
+        _page.SetText("Text_Manner", c.Manner.ToString("n0"));
         _page.SetText("Text_Strength", c.Str.ToString());
         _page.SetText("Text_Stamina", c.Sta.ToString());
         _page.SetText("Text_Dexterity", c.Dex.ToString());
@@ -98,5 +107,19 @@ public partial class CharacterWindow : Control
         _page.SetText("Text_RegistPoison", c.Resist(5).ToString());
         foreach (var (button, _) in StatButtons)
             if (_page.Get(button) is { } b) b.Visible = c.Points > 0;
+        foreach (var (text, row) in StatTexts)
+            if (_page.Get(text) is { } label)
+            {
+                label.MouseFilter = MouseFilterEnum.Pass;
+                label.TooltipText = StatBonusTooltip(c.RebirthStat(row), c.StatBonus(row) - c.RebirthStat(row));
+            }
+    }
+
+    private static string StatBonusTooltip(int rebirth, int other)
+    {
+        var lines = new List<string>();
+        if (rebirth != 0) lines.Add($"Rebirth {rebirth:+#;-#}");
+        if (other != 0) lines.Add($"Items and buffs {other:+#;-#}");
+        return string.Join("\n", lines);
     }
 }

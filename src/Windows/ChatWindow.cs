@@ -50,7 +50,23 @@ public partial class ChatWindow : Control
     private readonly LineEdit? _input;
     private readonly ColorRect _shade;
     private readonly Control? _dragButton;
+    private readonly Vector2 _baseSize;
+    private Control? _scrollDown;
+    private VerticalGrow? _grow;
+    private bool _relaying;
     private HudLayout? _hudLayout;
+
+    private static readonly HashSet<string> StretchIds = new()
+    {
+        "base_chat", "base_area", "base_button_area", "img_background", "img_background2", "scroll", "scroll_bar",
+        "img_scrollback", "img_scroll3", "text0",
+    };
+
+    private static readonly HashSet<string> ShiftIds = new()
+    {
+        "img_edit_bg", "img_edit1", "img_edit2", "edit0", "btn_clan", "btn_knights", "btn_party_force", "btn_private",
+        "btn_normal", "btn_shout", "btn_union", "btn_force", "btn_chat_lock", "base_option", "img_scroll1",
+    };
     private int _shadeIndex;
     private string _prefix = "";
 
@@ -98,7 +114,10 @@ public partial class ChatWindow : Control
             _view.OnPressed(scroll, "btn_scroll_Up", () => _log.Scroll(ScrollStep));
             foreach (var node in scroll.Children)
                 if (node.IsButton && node.Id.Length == 0 && _view.ControlOf(node) is BaseButton down)
+                {
                     down.Pressed += () => _log.Scroll(-ScrollStep);
+                    _scrollDown = down;
+                }
         }
 
         _input = _view.Get<LineEdit>(InputId);
@@ -127,6 +146,36 @@ public partial class ChatWindow : Control
             tab.Pressed += () => _prefix = which;
             if (button == WhisperButton) tab.Pressed += StartWhisper;
         }
+
+        _baseSize = Size;
+        Resized += Relayout;
+        Callable.From(CaptureGrow).CallDeferred();
+    }
+
+    private void CaptureGrow()
+    {
+        var grow = new VerticalGrow();
+        grow.Add(_view, VerticalGrow.Mode.Stretch);
+        foreach (var (node, control) in _view.Where(_ => true))
+            grow.Add(control, control == _scrollDown ? VerticalGrow.Mode.Shift
+                : StretchIds.Contains(node.Id) ? VerticalGrow.Mode.Stretch
+                : ShiftIds.Contains(node.Id) ? VerticalGrow.Mode.Shift
+                : VerticalGrow.Mode.Stay);
+        grow.Add(_shade, VerticalGrow.Mode.Stretch);
+        grow.Add(_log, VerticalGrow.Mode.Stretch);
+        foreach (var parent in grow.Stretched.Where(c => c != _shade && c != _log))
+            grow.ShiftBottomBand(parent);
+        _grow = grow;
+        Relayout();
+    }
+
+    private void Relayout()
+    {
+        if (_grow == null || _relaying) return;
+        _relaying = true;
+        if (!Mathf.IsEqualApprox(Size.X, _baseSize.X)) Size = new Vector2(_baseSize.X, Size.Y);
+        _grow.Apply(Mathf.Max(0f, Size.Y - _baseSize.Y));
+        _relaying = false;
     }
 
     public override void _EnterTree()
@@ -134,7 +183,9 @@ public partial class ChatWindow : Control
         _game.Chat.LineAdded += Append;
         _game.Chat.InputRequested += FocusInput;
         _game.BecameAvailable += Reload;
-        _hudLayout ??= HudLayout.Attach(this, LayoutId, _dragButton, DefaultPosition, backgroundOpacityChanged: _ => CycleShade());
+        _hudLayout ??= HudLayout.Attach(this, LayoutId, _dragButton, DefaultPosition, resizable: true,
+            defaultSize: _baseSize, minimumSize: _baseSize, resizeCorner: HudLayout.Corner.TopRight,
+            backgroundOpacityChanged: _ => CycleShade());
         Reload();
     }
 

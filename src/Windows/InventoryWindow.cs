@@ -30,6 +30,8 @@ public partial class InventoryWindow : Control
     private bool _cospreOpen;
     private int _bag;
     private int _carried = -1;
+    private TextureRect? _portrait;
+    private bool _portraitOn;
 
     public InventoryWindow(WindowHost host)
     {
@@ -79,6 +81,20 @@ public partial class InventoryWindow : Control
                 OnClick = () => { if (_carried < 0) return; int from = _carried; CancelCarry(); _game.Inventory.Drop(from); },
             };
             trash.GetParent().AddChild(target);
+        }
+
+        if (_view.Get("area_char") is { } charArea)
+        {
+            _portrait = new TextureRect
+            {
+                Position = charArea.Position,
+                Size = charArea.Size,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+                MouseFilter = MouseFilterEnum.Ignore,
+                ClipContents = true,
+            };
+            charArea.GetParent().AddChild(_portrait);
         }
 
         _carry = new TextureRect
@@ -201,6 +217,7 @@ public partial class InventoryWindow : Control
         _game.Character.Changed += RefreshTotals;
         _game.BecameAvailable += Refresh;
         _host.Shown += Refresh;
+        _host.Shown += ShowPortrait;
         _host.Hidden += OnHidden;
         Refresh();
     }
@@ -211,11 +228,29 @@ public partial class InventoryWindow : Control
         _game.Character.Changed -= RefreshTotals;
         _game.BecameAvailable -= Refresh;
         _host.Shown -= Refresh;
+        _host.Shown -= ShowPortrait;
         _host.Hidden -= OnHidden;
+        HidePortrait();
+    }
+
+    private void ShowPortrait()
+    {
+        if (_portrait == null || _portraitOn) return;
+        _portraitOn = true;
+        _game.Character.SetPortraitShown(true);
+        _portrait.Texture = _game.Character.Portrait;
+    }
+
+    private void HidePortrait()
+    {
+        if (!_portraitOn) return;
+        _portraitOn = false;
+        _game.Character.SetPortraitShown(false);
     }
 
     private void OnHidden()
     {
+        HidePortrait();
         CancelCarry();
         _game.Inventory.HideTooltip();
     }
