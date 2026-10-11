@@ -36,7 +36,6 @@ public partial class ChatWindow : Control
     private static readonly (string Button, string Prefix)[] ChannelTabs =
     {
         ("btn_normal", ""),
-        ("btn_private", "@"),
         ("btn_shout", "!"),
         ("btn_party_force", "#"),
         ("btn_clan", "$"),
@@ -105,6 +104,7 @@ public partial class ChatWindow : Control
         {
             Position = textArea?.Position ?? Vector2.Zero,
             Size = textArea?.Size ?? new Vector2(379, 108),
+            MouseFilter = MouseFilterEnum.Pass,
         };
         if (textArea != null) textArea.Visible = false;
         (textArea?.GetParent() ?? (Node)_view).AddChild(_log);
@@ -144,8 +144,8 @@ public partial class ChatWindow : Control
             tab.ButtonPressed = prefix.Length == 0;
             string which = prefix;
             tab.Pressed += () => _prefix = which;
-            if (button == WhisperButton) tab.Pressed += StartWhisper;
         }
+        _view.OnPressed(WhisperButton, StartWhisper);
 
         _baseSize = Size;
         Resized += Relayout;
@@ -216,9 +216,14 @@ public partial class ChatWindow : Control
 
     private void StartWhisper()
     {
-        if (_input == null || !_game.Target.Has || !_game.Target.IsPlayer) return;
+        if (_game.Target.Has && _game.Target.IsPlayer)
+        {
+            _game.Whispers.OpenWith(_game.Target.Name);
+            return;
+        }
+        if (_input == null) return;
         FocusInput();
-        _input.Text = WhisperPrefix + _game.Target.Name + " ";
+        _input.Text = WhisperPrefix;
         _input.CaretColumn = _input.Text.Length;
     }
 
