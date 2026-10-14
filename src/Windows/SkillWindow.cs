@@ -20,47 +20,47 @@ public partial class SkillWindow : Control
     private static readonly string[] LabelFamilies = { "berserker", "hunter", "sorcerer", "shaman" };
     private const string MasterLabelText = "Master";
 
-    private readonly LayoutView _view;
-    private readonly LayoutNode _layout;
-    private readonly PluginGame _game;
-    private readonly WindowHost _host;
-    private readonly List<SkillCell> _cells = new();
-    private readonly List<TextureButton> _tabButtons = new();
-    private readonly List<GameSkill> _pageSkills = new();
-    private int _family;
-    private int _tab;
-    private int _page;
-    private int _selected = -1;
-    private int _hovered = -1;
-    private Rect2 _listRect;
+    private readonly LayoutView view;
+    private readonly LayoutNode layout;
+    private readonly PluginGame game;
+    private readonly WindowHost host;
+    private readonly List<SkillCell> cells = new();
+    private readonly List<TextureButton> tabButtons = new();
+    private readonly List<GameSkill> pageSkills = new();
+    private int family;
+    private int tab;
+    private int page;
+    private int selected = -1;
+    private int hovered = -1;
+    private Rect2 listRect;
 
     public SkillWindow(WindowHost host)
     {
-        _host = host;
+        this.host = host;
         var kit = Plugin.Kit;
-        _game = kit.Game;
-        _layout = kit.Layout(LayoutName);
-        _view = new LayoutView(kit, _layout);
+        game = kit.Game;
+        layout = kit.Layout(LayoutName);
+        view = new LayoutView(kit, layout);
         MouseFilter = MouseFilterEnum.Stop;
-        CustomMinimumSize = _layout.SizeVec;
-        Size = _layout.SizeVec;
-        AddChild(_view);
-        host.SetDragHandle(_view.MakeDragHandle(new Rect2(0, 0, _layout.W, TitleBarHeight)));
-        _view.OnPressed("btn_close", host.Close);
-        _view.OnPressed("btn_left", () => TurnPage(-1));
-        _view.OnPressed("btn_right", () => TurnPage(1));
+        CustomMinimumSize = layout.SizeVec;
+        Size = layout.SizeVec;
+        AddChild(view);
+        host.SetDragHandle(view.MakeDragHandle(new Rect2(0, 0, layout.W, TitleBarHeight)));
+        view.OnPressed("btn_close", host.Close);
+        view.OnPressed("btn_left", () => TurnPage(-1));
+        view.OnPressed("btn_right", () => TurnPage(1));
         for (int row = 0; row < NationalRows; row++)
         {
-            _view.Hide($"btn_{row}");
-            _view.SetText($"string_{row}", "");
+            view.Hide($"btn_{row}");
+            view.SetText($"string_{row}", "");
         }
         for (int row = 0; row < TreeRows; row++)
         {
             int type = row;
-            _view.OnPressed($"btn_{TreeRowBase + row}", () => SpendOnRow(type));
+            view.OnPressed($"btn_{TreeRowBase + row}", () => SpendOnRow(type));
         }
 
-        foreach (var (node, control) in _view.Areas(SlotAreaType))
+        foreach (var (node, control) in view.Areas(SlotAreaType))
         {
             if (!int.TryParse(node.Id, out int index) || index >= SlotsPerPage) continue;
             var cell = new SkillCell(index)
@@ -68,69 +68,69 @@ public partial class SkillWindow : Control
                 Position = control.Position,
                 Size = control.Size,
                 OnSelect = Select,
-                OnAdd = id => _game.Skills.AddToHotbar(id),
-                OnHover = (id, over) => { _hovered = over ? id : -1; RefreshInfo(); },
+                OnAdd = id => game.Skills.AddToHotbar(id),
+                OnHover = (id, over) => { hovered = over ? id : -1; RefreshInfo(); },
             };
             control.GetParent().AddChild(cell);
-            _cells.Add(cell);
+            cells.Add(cell);
             var rect = new Rect2(control.Position, control.Size + new Vector2(ListNameWidth, 0));
-            _listRect = _listRect.Size == Vector2.Zero ? rect : _listRect.Merge(rect);
+            listRect = listRect.Size == Vector2.Zero ? rect : listRect.Merge(rect);
         }
-        _cells.Sort((a, b) => a.Index.CompareTo(b.Index));
+        cells.Sort((a, b) => a.Index.CompareTo(b.Index));
         Rebuild();
     }
 
     public override void _GuiInput(InputEvent ev)
     {
         if (ev is not InputEventMouseButton { Pressed: true } wheel) return;
-        if (wheel.ButtonIndex is not (MouseButton.WheelUp or MouseButton.WheelDown) || !_listRect.HasPoint(wheel.Position)) return;
+        if (wheel.ButtonIndex is not (MouseButton.WheelUp or MouseButton.WheelDown) || !listRect.HasPoint(wheel.Position)) return;
         TurnPage(wheel.ButtonIndex == MouseButton.WheelUp ? -1 : 1);
         AcceptEvent();
     }
 
     public override void _EnterTree()
     {
-        _game.Skills.Changed += Rebuild;
-        _game.BecameAvailable += Rebuild;
-        _host.Shown += Rebuild;
+        game.Skills.Changed += Rebuild;
+        game.BecameAvailable += Rebuild;
+        host.Shown += Rebuild;
     }
 
     public override void _ExitTree()
     {
-        _game.Skills.Changed -= Rebuild;
-        _game.BecameAvailable -= Rebuild;
-        _host.Shown -= Rebuild;
+        game.Skills.Changed -= Rebuild;
+        game.BecameAvailable -= Rebuild;
+        host.Shown -= Rebuild;
     }
 
     private void Rebuild()
     {
-        _family = Math.Clamp((_game.Character.Class % 100 - 1) % ClassesPerFamilyCycle, 0, TabFamilies.Length - 1);
-        var tabs = _game.Skills.Tabs;
-        foreach (var b in _tabButtons) b.ToggleMode = false;
-        _tabButtons.Clear();
+        family = Math.Clamp((game.Character.Class % 100 - 1) % ClassesPerFamilyCycle, 0, TabFamilies.Length - 1);
+        var tabs = game.Skills.Tabs;
+        foreach (var b in tabButtons) b.ToggleMode = false;
+        tabButtons.Clear();
         var group = new ButtonGroup();
         for (int f = 0; f < TabFamilies.Length; f++)
             for (int i = 0; i < FamilyTabs; i++)
-                _view.Hide($"btn_{TabFamilies[f]}{i}");
+                view.Hide($"btn_{TabFamilies[f]}{i}");
         for (int f = 0; f < LabelFamilies.Length; f++)
             for (int i = 0; i < FamilyTabs; i++)
-                _view.Hide($"img_{LabelFamilies[f]}_{i}");
-        _view.Hide("btn_master", "btn_public");
+                view.Hide($"img_{LabelFamilies[f]}_{i}");
+        view.Hide("btn_master", "btn_public");
 
         for (int t = 0; t < tabs.Count; t++)
         {
-            string id = t == 0 ? "btn_public" : t <= FamilyTabs ? $"btn_{TabFamilies[_family]}{t - 1}" : "btn_master";
-            if (_view.Get<TextureButton>(id) is not { } button) continue;
+            string id = t == 0 ? "btn_public" : t <= FamilyTabs ? $"btn_{TabFamilies[family]}{t - 1}" : "btn_master";
+            if (view.Get<TextureButton>(id) is not { } button) continue;
             button.Visible = true;
             button.ToggleMode = true;
             button.ButtonGroup = group;
             int which = t;
             button.Pressed += () => SelectTab(which);
-            _tabButtons.Add(button);
+            tabButtons.Add(button);
         }
-        if (_tab >= tabs.Count) _tab = 0;
+        if (tab >= tabs.Count) tab = 0;
         for (int i = 0; i < FamilyTabs; i++)
-            if (_view.Get($"img_{LabelFamilies[_family]}_{i}") is { } label) label.Visible = true;
+            if (view.Get($"img_{LabelFamilies[family]}_{i}") is { } label) label.Visible = true;
 
         RefreshTrees();
         RefreshPage();
@@ -138,93 +138,93 @@ public partial class SkillWindow : Control
 
     private void RefreshTrees()
     {
-        var trees = _game.Skills.Trees;
-        _view.SetText("string_skillpoint", _game.Skills.MasteryPool.ToString());
+        var trees = game.Skills.Trees;
+        view.SetText("string_skillpoint", game.Skills.MasteryPool.ToString());
         for (int row = 0; row < TreeRows; row++)
         {
             bool has = row < trees.Count;
             var tree = has ? trees[row] : default;
             bool shown = has && tree.Shown;
-            _view.SetText($"string_{TreeRowBase + row}", shown ? tree.Points.ToString() : "");
-            if (_view.Get<TextureButton>($"btn_{TreeRowBase + row}") is { } plus)
+            view.SetText($"string_{TreeRowBase + row}", shown ? tree.Points.ToString() : "");
+            if (view.Get<TextureButton>($"btn_{TreeRowBase + row}") is { } plus)
             {
                 plus.Visible = shown;
                 plus.Disabled = !tree.CanSpend;
                 plus.TooltipText = tree.Hint;
             }
             if (row == TreeRows - 1)
-                foreach (var node in _layout.Children)
-                    if (node.IsString && node.Text == MasterLabelText && _view.ControlOf(node) is { } label)
+                foreach (var node in layout.Children)
+                    if (node.IsString && node.Text == MasterLabelText && view.ControlOf(node) is { } label)
                         label.Visible = shown;
         }
     }
 
     private void SelectTab(int tab)
     {
-        _tab = tab;
-        _page = 0;
-        _selected = -1;
+        this.tab = tab;
+        page = 0;
+        selected = -1;
         RefreshPage();
     }
 
     private void TurnPage(int delta)
     {
         int pages = Math.Max(1, (CurrentSkills().Count + SlotsPerPage - 1) / SlotsPerPage);
-        int page = Math.Clamp(_page + delta, 0, pages - 1);
-        if (page == _page) return;
-        _page = page;
+        int page = Math.Clamp(this.page + delta, 0, pages - 1);
+        if (page == this.page) return;
+        this.page = page;
         RefreshPage();
     }
 
     private IReadOnlyList<GameSkill> CurrentSkills()
     {
-        var tabs = _game.Skills.Tabs;
-        return _tab < tabs.Count ? _game.Skills.Skills(tabs[_tab].Category) : Array.Empty<GameSkill>();
+        var tabs = game.Skills.Tabs;
+        return tab < tabs.Count ? game.Skills.Skills(tabs[tab].Category) : Array.Empty<GameSkill>();
     }
 
     private void RefreshPage()
     {
-        if (_tab < _tabButtons.Count) _tabButtons[_tab].ButtonPressed = true;
+        if (tab < tabButtons.Count) tabButtons[tab].ButtonPressed = true;
         var skills = CurrentSkills();
-        int first = _page * SlotsPerPage;
-        _pageSkills.Clear();
-        for (int i = 0; i < _cells.Count; i++)
+        int first = page * SlotsPerPage;
+        pageSkills.Clear();
+        for (int i = 0; i < cells.Count; i++)
         {
             var skill = first + i < skills.Count ? skills[first + i] : (GameSkill?)null;
-            _cells[i].Bind(skill);
-            _view.SetText($"string_list_{i}", skill?.Name ?? "");
-            if (skill != null) _pageSkills.Add(skill.Value);
+            cells[i].Bind(skill);
+            view.SetText($"string_list_{i}", skill?.Name ?? "");
+            if (skill != null) pageSkills.Add(skill.Value);
         }
-        if (_selected < 0 && _pageSkills.Count > 0) _selected = _pageSkills[0].Id;
-        foreach (var cell in _cells) cell.SetSelected(cell.SkillId == _selected);
-        _view.SetText("string_page", (_page + 1).ToString());
+        if (selected < 0 && pageSkills.Count > 0) selected = pageSkills[0].Id;
+        foreach (var cell in cells) cell.SetSelected(cell.SkillId == selected);
+        view.SetText("string_page", (page + 1).ToString());
         RefreshInfo();
     }
 
     private void Select(int skillId)
     {
-        _selected = skillId;
-        foreach (var cell in _cells) cell.SetSelected(cell.SkillId == _selected);
+        selected = skillId;
+        foreach (var cell in cells) cell.SetSelected(cell.SkillId == selected);
         RefreshInfo();
     }
 
     private void RefreshInfo()
     {
-        int shown = _hovered >= 0 ? _hovered : _selected;
-        var info = shown >= 0 ? _game.Skills.Info(shown) : default;
+        int shown = hovered >= 0 ? hovered : selected;
+        var info = shown >= 0 ? game.Skills.Info(shown) : default;
         bool has = shown >= 0 && info.Description != null;
-        _view.SetText("string_info", has ? info.Description ?? "" : "");
-        _view.SetText("string_skill_mp", has ? $"MP consumed : {info.Mp}    Required Level : {info.RequiredLevel}" : "");
-        _view.SetText("string_skill_point", has && info.UsesPoints ? $"Required Skill Point : {info.RequiredPoints}" : "");
-        _view.SetText("string_skill_item0", !has ? "" : info.BasicItem.Length > 0 ? $"Basic item : Required Item : {info.BasicItem}" : "No basic item");
-        _view.SetText("string_skill_item1", !has ? "" : info.RequiredItem.Length > 0 ? $"Required item : {info.RequiredItem}" : "No required item");
-        _view.SetText("string_skill_item2", !has ? "" : info.ConsumedItem.Length > 0 ? $"Item consumed : {info.ConsumedItem}" : "No item consumed");
+        view.SetText("string_info", has ? info.Description ?? "" : "");
+        view.SetText("string_skill_mp", has ? $"MP consumed : {info.Mp}    Required Level : {info.RequiredLevel}" : "");
+        view.SetText("string_skill_point", has && info.UsesPoints ? $"Required Skill Point : {info.RequiredPoints}" : "");
+        view.SetText("string_skill_item0", !has ? "" : info.BasicItem.Length > 0 ? $"Basic item : Required Item : {info.BasicItem}" : "No basic item");
+        view.SetText("string_skill_item1", !has ? "" : info.RequiredItem.Length > 0 ? $"Required item : {info.RequiredItem}" : "No required item");
+        view.SetText("string_skill_item2", !has ? "" : info.ConsumedItem.Length > 0 ? $"Item consumed : {info.ConsumedItem}" : "No item consumed");
     }
 
     private void SpendOnRow(int row)
     {
-        var trees = _game.Skills.Trees;
-        if (row < trees.Count) _game.Skills.SpendMastery(trees[row].Type);
+        var trees = game.Skills.Trees;
+        if (row < trees.Count) game.Skills.SpendMastery(trees[row].Type);
     }
 }
 
@@ -241,57 +241,57 @@ public partial class SkillCell : Control
     public Action<int>? OnAdd { get; set; }
     public Action<int, bool>? OnHover { get; set; }
 
-    private readonly TextureRect _icon;
-    private GameSkill? _skill;
-    private bool _selected;
+    private readonly TextureRect icon;
+    private GameSkill? skill;
+    private bool selected;
 
     public SkillCell(int index)
     {
         Index = index;
         MouseFilter = MouseFilterEnum.Stop;
-        MouseEntered += () => { if (_skill != null) OnHover?.Invoke(_skill.Value.Id, true); };
-        MouseExited += () => { if (_skill != null) OnHover?.Invoke(_skill.Value.Id, false); };
-        _icon = new TextureRect
+        MouseEntered += () => { if (skill != null) OnHover?.Invoke(skill.Value.Id, true); };
+        MouseExited += () => { if (skill != null) OnHover?.Invoke(skill.Value.Id, false); };
+        icon = new TextureRect
         {
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.Scale,
             MouseFilter = MouseFilterEnum.Ignore,
         };
-        _icon.SetAnchorsPreset(LayoutPreset.FullRect);
-        AddChild(_icon);
+        icon.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(icon);
     }
 
     public void Bind(GameSkill? skill)
     {
-        _skill = skill;
+        this.skill = skill;
         SkillId = skill?.Id ?? -1;
         Visible = skill != null;
-        _icon.Texture = skill?.Icon;
-        _icon.Modulate = skill is { Available: false } ? UnavailableTint : Colors.White;
+        icon.Texture = skill?.Icon;
+        icon.Modulate = skill is { Available: false } ? UnavailableTint : Colors.White;
         TooltipText = skill?.Tooltip ?? "";
     }
 
     public void SetSelected(bool selected)
     {
-        _selected = selected;
+        this.selected = selected;
         QueueRedraw();
     }
 
     public override void _Draw()
     {
-        if (_selected) DrawRect(new Rect2(Vector2.Zero, Size), SelectedFrame, false, FrameWidth);
+        if (selected) DrawRect(new Rect2(Vector2.Zero, Size), SelectedFrame, false, FrameWidth);
     }
 
     public override void _GuiInput(InputEvent ev)
     {
-        if (_skill == null || ev is not InputEventMouseButton { Pressed: true } mb) return;
-        if (mb.ButtonIndex == MouseButton.Left) { OnSelect?.Invoke(_skill.Value.Id); AcceptEvent(); }
-        else if (mb.ButtonIndex == MouseButton.Right && _skill.Value.Available) { OnAdd?.Invoke(_skill.Value.Id); AcceptEvent(); }
+        if (skill == null || ev is not InputEventMouseButton { Pressed: true } mb) return;
+        if (mb.ButtonIndex == MouseButton.Left) { OnSelect?.Invoke(skill.Value.Id); AcceptEvent(); }
+        else if (mb.ButtonIndex == MouseButton.Right && skill.Value.Available) { OnAdd?.Invoke(skill.Value.Id); AcceptEvent(); }
     }
 
     public override Variant _GetDragData(Vector2 atPosition)
     {
-        if (_skill is not { Available: true } skill) return default;
+        if (this.skill is not { Available: true } skill) return default;
         var preview = new TextureRect
         {
             Texture = skill.Icon,

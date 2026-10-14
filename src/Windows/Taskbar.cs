@@ -41,39 +41,39 @@ public partial class Taskbar : Control
         ("btn_powerup", "shoppingmall"),
     };
 
-    private readonly LayoutView _view;
-    private readonly PluginGame _game;
-    private readonly LayoutNode _layout;
-    private readonly LayoutNode _expanded;
-    private readonly LayoutNode _menu;
+    private readonly LayoutView view;
+    private readonly PluginGame game;
+    private readonly LayoutNode layout;
+    private readonly LayoutNode expanded;
+    private readonly LayoutNode menu;
 
     public Taskbar()
     {
         var kit = Plugin.Kit;
-        _game = kit.Game;
-        _layout = kit.Layout(LayoutName);
-        _view = new LayoutView(kit, _layout);
-        _expanded = _layout.Find(ExpandedGroup) ?? _layout;
-        _menu = _layout.Find(MenuGroup) ?? _layout;
+        game = kit.Game;
+        layout = kit.Layout(LayoutName);
+        view = new LayoutView(kit, layout);
+        expanded = layout.Find(ExpandedGroup) ?? layout;
+        menu = layout.Find(MenuGroup) ?? layout;
         MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(_view);
-        _view.Hide(CollapsedGroup, "btn_question_karu", "btn_question_elmo");
-        _view.Hide(_expanded, StandButton, ChangeButton);
+        AddChild(view);
+        view.Hide(CollapsedGroup, "btn_question_karu", "btn_question_elmo");
+        view.Hide(expanded, StandButton, ChangeButton);
         foreach (var (button, window) in WindowButtons)
-            _view.OnPressed(_expanded, button, () => _game.Windows.Toggle(window));
+            view.OnPressed(expanded, button, () => game.Windows.Toggle(window));
         foreach (var (button, window) in MenuButtons)
-            _view.OnPressed(_menu, button, () => _game.Windows.Toggle(window));
-        _view.OnPressed(_expanded, TownButton, () => _game.Commands.GoTown());
-        _view.OnPressed(_expanded, TradeButton, () => _game.Commands.TradeWithTarget());
-        _view.OnPressed(_expanded, SitButton, () => _game.Commands.ToggleSit());
-        _view.OnPressed(_menu, MenuButton, () => LibreKO.SettingsPanel.Open(GetTree().Root));
-        _view.SetTextAll(NoticeText, "");
+            view.OnPressed(menu, button, () => game.Windows.Toggle(window));
+        view.OnPressed(expanded, TownButton, () => game.Commands.GoTown());
+        view.OnPressed(expanded, TradeButton, () => game.Commands.TradeWithTarget());
+        view.OnPressed(expanded, SitButton, () => game.Commands.ToggleSit());
+        view.OnPressed(menu, MenuButton, () => LibreKO.SettingsPanel.Open(GetTree().Root));
+        view.SetTextAll(NoticeText, "");
     }
 
     public override void _EnterTree()
     {
-        _game.Character.Changed += RefreshExp;
-        _game.BecameAvailable += RefreshExp;
+        game.Character.Changed += RefreshExp;
+        game.BecameAvailable += RefreshExp;
         GetViewport().SizeChanged += Place;
         Place();
         RefreshExp();
@@ -81,40 +81,40 @@ public partial class Taskbar : Control
 
     public override void _ExitTree()
     {
-        _game.Character.Changed -= RefreshExp;
-        _game.BecameAvailable -= RefreshExp;
+        game.Character.Changed -= RefreshExp;
+        game.BecameAvailable -= RefreshExp;
         GetViewport().SizeChanged -= Place;
     }
 
     private void Place()
     {
         var room = GetViewport().GetVisibleRect().Size;
-        _view.Position = new Vector2(0, room.Y - _layout.H);
-        if (_expanded.Find(RightGroup) is not { } right || _view.ControlOf(right) is not { } rightControl) return;
+        view.Position = new Vector2(0, room.Y - layout.H);
+        if (expanded.Find(RightGroup) is not { } right || view.ControlOf(right) is not { } rightControl) return;
         float rightLeft = room.X - right.W;
-        rightControl.Position = new Vector2(rightLeft - _layout.X, right.Y - _layout.Y);
-        if (_expanded.Find(Background) is { } bg && _view.ControlOf(bg) is { } bgControl)
+        rightControl.Position = new Vector2(rightLeft - layout.X, right.Y - layout.Y);
+        if (expanded.Find(Background) is { } bg && view.ControlOf(bg) is { } bgControl)
             bgControl.Size = new Vector2(rightLeft - bg.X, bg.H);
         float barRight = 0f;
-        if (_expanded.Find(ExpBar) is { } exp && _view.ControlOf(exp) is { } expControl)
+        if (expanded.Find(ExpBar) is { } exp && view.ControlOf(exp) is { } expControl)
         {
             barRight = rightLeft + (exp.X + exp.W - right.X);
             expControl.Size = new Vector2(barRight - exp.X, exp.H);
-            if (_expanded.Find(ExpText) is { } text && _view.ControlOf(text) is { } textControl)
-                textControl.Position = new Vector2(exp.X + (barRight - exp.X - text.W) * 0.5f - _layout.X, textControl.Position.Y);
+            if (expanded.Find(ExpText) is { } text && view.ControlOf(text) is { } textControl)
+                textControl.Position = new Vector2(exp.X + (barRight - exp.X - text.W) * 0.5f - layout.X, textControl.Position.Y);
         }
-        if (_expanded.Find(NoticeText) is { } notice && _view.ControlOf(notice) is { } noticeControl && barRight > 0f)
+        if (expanded.Find(NoticeText) is { } notice && view.ControlOf(notice) is { } noticeControl && barRight > 0f)
             noticeControl.Size = new Vector2(barRight - notice.X, notice.H);
     }
 
     private void RefreshExp()
     {
-        var c = _game.Character;
+        var c = game.Character;
         float fraction = Mathf.Clamp((float)(c.ExpPercent / 100.0), 0f, 1f);
-        if (_view.Get<TextureProgressBar>(_expanded, ExpBar) is { } bar) bar.Value = fraction;
-        if (_view.Get<Label>(_expanded, ExpText) is { } text) text.Text = $"EXP : {c.ExpPercent:0.0}%";
+        if (view.Get<TextureProgressBar>(expanded, ExpBar) is { } bar) bar.Value = fraction;
+        if (view.Get<Label>(expanded, ExpText) is { } text) text.Text = $"EXP : {c.ExpPercent:0.0}%";
         bool karus = c.Nation == KarusNation;
-        if (_view.Get(_menu, KarusQuestButton) is { } karusQuests) karusQuests.Visible = karus;
-        if (_view.Get(_menu, ElmoQuestButton) is { } elmoQuests) elmoQuests.Visible = !karus;
+        if (view.Get(menu, KarusQuestButton) is { } karusQuests) karusQuests.Visible = karus;
+        if (view.Get(menu, ElmoQuestButton) is { } elmoQuests) elmoQuests.Visible = !karus;
     }
 }

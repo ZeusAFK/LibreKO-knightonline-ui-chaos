@@ -25,52 +25,52 @@ public partial class MiniMapFrame : Control
     };
     private static readonly string[] BandIds = { BandId, ZoneText, PositionText, MinimiseButton, MaximiseButton };
 
-    private readonly LayoutView _view;
-    private readonly LayoutNode _layout;
-    private readonly PluginGame _game;
-    private readonly MapCanvas _canvas;
-    private HudLayout? _hudLayout;
-    private bool _collapsed;
+    private readonly LayoutView view;
+    private readonly LayoutNode layout;
+    private readonly PluginGame game;
+    private readonly MapCanvas canvas;
+    private HudLayout? hudLayout;
+    private bool collapsed;
 
     public MiniMapFrame()
     {
         var kit = Plugin.Kit;
-        _game = kit.Game;
-        _layout = kit.Layout(LayoutName);
-        _view = new LayoutView(kit, _layout);
+        game = kit.Game;
+        layout = kit.Layout(LayoutName);
+        view = new LayoutView(kit, layout);
         MouseFilter = MouseFilterEnum.Ignore;
         Size = new Vector2(FrameWidth, FrameHeight);
-        AddChild(_view);
-        _view.Hide(HiddenIds);
+        AddChild(view);
+        view.Hide(HiddenIds);
 
-        var area = _view.Get(MapArea);
-        _canvas = new MapCanvas(_game) { Position = area?.Position ?? Vector2.Zero, Size = area?.Size ?? new Vector2(203, 199) };
-        (area?.GetParent() ?? (Node)_view).AddChild(_canvas);
-        if (area != null) _canvas.GetParent().MoveChild(_canvas, area.GetIndex() + 1);
+        var area = view.Get(MapArea);
+        canvas = new MapCanvas(game) { Position = area?.Position ?? Vector2.Zero, Size = area?.Size ?? new Vector2(203, 199) };
+        (area?.GetParent() ?? (Node)view).AddChild(canvas);
+        if (area != null) canvas.GetParent().MoveChild(canvas, area.GetIndex() + 1);
 
-        _view.OnPressed("Btn_ZoomIn", () => _canvas.Zoom(-1));
-        _view.OnPressed("Btn_ZoomOut", () => _canvas.Zoom(1));
-        _view.OnPressed("btn_globalmap", () => _game.Windows.Toggle("globalmap"));
-        _view.OnPressed("btn_battle_a", _canvas.ToggleBlips);
-        _view.OnPressed(MinimiseButton, () => SetCollapsed(true));
-        _view.OnPressed(MaximiseButton, () => SetCollapsed(false));
-        if (_view.Get(BandId) is { } band) band.MouseFilter = MouseFilterEnum.Stop;
+        view.OnPressed("Btn_ZoomIn", () => canvas.Zoom(-1));
+        view.OnPressed("Btn_ZoomOut", () => canvas.Zoom(1));
+        view.OnPressed("btn_globalmap", () => game.Windows.Toggle("globalmap"));
+        view.OnPressed("btn_battle_a", canvas.ToggleBlips);
+        view.OnPressed(MinimiseButton, () => SetCollapsed(true));
+        view.OnPressed(MaximiseButton, () => SetCollapsed(false));
+        if (view.Get(BandId) is { } band) band.MouseFilter = MouseFilterEnum.Stop;
         SetCollapsed(false);
         Refresh();
     }
 
     public override void _EnterTree()
     {
-        _game.Map.Changed += Refresh;
-        _game.BecameAvailable += Refresh;
-        _hudLayout ??= HudLayout.Attach(this, LayoutId, _view.Get(BandId), DefaultPosition);
+        game.Map.Changed += Refresh;
+        game.BecameAvailable += Refresh;
+        hudLayout ??= HudLayout.Attach(this, LayoutId, view.Get(BandId), DefaultPosition);
         Refresh();
     }
 
     public override void _ExitTree()
     {
-        _game.Map.Changed -= Refresh;
-        _game.BecameAvailable -= Refresh;
+        game.Map.Changed -= Refresh;
+        game.BecameAvailable -= Refresh;
     }
 
     private Vector2 DefaultPosition()
@@ -81,24 +81,24 @@ public partial class MiniMapFrame : Control
 
     private void SetCollapsed(bool collapsed)
     {
-        _collapsed = collapsed;
-        foreach (var child in _layout.Children)
+        this.collapsed = collapsed;
+        foreach (var child in layout.Children)
         {
-            if (_view.ControlOf(child) is not { } control) continue;
+            if (view.ControlOf(child) is not { } control) continue;
             control.Visible = BandIds.Contains(child.Id) || !collapsed;
         }
-        _canvas.Visible = !collapsed;
-        if (!collapsed) _view.Hide(HiddenIds);
-        if (_view.Get(MinimiseButton) is { } minimise) minimise.Visible = !collapsed;
-        if (_view.Get(MaximiseButton) is { } maximise) maximise.Visible = collapsed;
+        canvas.Visible = !collapsed;
+        if (!collapsed) view.Hide(HiddenIds);
+        if (view.Get(MinimiseButton) is { } minimise) minimise.Visible = !collapsed;
+        if (view.Get(MaximiseButton) is { } maximise) maximise.Visible = collapsed;
     }
 
     private void Refresh()
     {
-        var m = _game.Map;
-        _view.SetText(ZoneText, m.ZoneName);
-        _view.SetText(PositionText, $"{m.X:0}, {m.Z:0}");
-        _canvas.QueueRedraw();
+        var m = game.Map;
+        view.SetText(ZoneText, m.ZoneName);
+        view.SetText(PositionText, $"{m.X:0}, {m.Z:0}");
+        canvas.QueueRedraw();
     }
 }
 
@@ -110,34 +110,34 @@ public partial class MapCanvas : Control
     private static readonly Color PlayerColor = new(1f, 0.95f, 0.6f);
     private const float PlayerArrow = 6f;
 
-    private readonly PluginGame _game;
-    private int _zoom = DefaultZoom;
-    private bool _showBlips = true;
+    private readonly PluginGame game;
+    private int zoom = DefaultZoom;
+    private bool showBlips = true;
 
     public MapCanvas(PluginGame game)
     {
-        _game = game;
+        this.game = game;
         ClipContents = true;
         MouseFilter = MouseFilterEnum.Ignore;
     }
 
     public void ToggleBlips()
     {
-        _showBlips = !_showBlips;
+        showBlips = !showBlips;
         QueueRedraw();
     }
 
     public void Zoom(int dir)
     {
-        _zoom = Mathf.Clamp(_zoom + dir, 0, ZoomRadii.Length - 1);
+        zoom = Mathf.Clamp(zoom + dir, 0, ZoomRadii.Length - 1);
         QueueRedraw();
     }
 
     public override void _Draw()
     {
-        var m = _game.Map;
+        var m = game.Map;
         DrawRect(new Rect2(Vector2.Zero, Size), Background);
-        float radius = ZoomRadii[_zoom];
+        float radius = ZoomRadii[zoom];
         var tex = m.MapTexture;
         if (tex != null && m.WorldExtent > 0f)
         {
@@ -149,7 +149,7 @@ public partial class MapCanvas : Control
         }
         float pxPerWorld = Size.X * 0.5f / radius;
         var mid = Size * 0.5f;
-        foreach (var b in _showBlips ? m.Blips : Array.Empty<MiniMap.Blip>())
+        foreach (var b in showBlips ? m.Blips : Array.Empty<MiniMap.Blip>())
         {
             var p = mid + new Vector2((b.X - m.X) * pxPerWorld, -(b.Z - m.Z) * pxPerWorld);
             if (p.X < 0 || p.Y < 0 || p.X > Size.X || p.Y > Size.Y) continue;

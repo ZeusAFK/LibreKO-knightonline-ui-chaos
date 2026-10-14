@@ -23,27 +23,27 @@ public partial class TargetFrame : Control
         [TargetHpLook.Slow] = "Progress_HP_slow",
     };
 
-    private readonly LayoutView _view;
-    private readonly PluginGame _game;
-    private readonly Label _hpText;
+    private readonly LayoutView view;
+    private readonly PluginGame game;
+    private readonly Label hpText;
 
     public TargetFrame()
     {
         var kit = Plugin.Kit;
-        _game = kit.Game;
-        _view = new LayoutView(kit, kit.Layout(LayoutName));
-        Size = _view.Size;
+        game = kit.Game;
+        view = new LayoutView(kit, kit.Layout(LayoutName));
+        Size = view.Size;
         MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(_view);
-        _view.Hide("Button_Board");
-        _hpText = BuildHpText();
+        AddChild(view);
+        view.Hide("Button_Board");
+        hpText = BuildHpText();
         ShowBar(HpBar);
         Visible = false;
     }
 
     private Label BuildHpText()
     {
-        var bar = _view.Where(n => n.Id == HpBar).First().Node;
+        var bar = view.Where(n => n.Id == HpBar).First().Node;
         var label = new Label
         {
             Position = new Vector2(bar.X, bar.Y - HpTextOverhang * 0.5f),
@@ -56,15 +56,15 @@ public partial class TargetFrame : Control
         label.AddThemeColorOverride("font_color", Colors.White);
         label.AddThemeColorOverride("font_outline_color", new Color(0f, 0f, 0f, 0.85f));
         label.AddThemeConstantOverride("outline_size", HpTextOutline);
-        _view.AddChild(label);
+        view.AddChild(label);
         return label;
     }
 
     public override void _EnterTree()
     {
-        _game.Target.Changed += Refresh;
-        _game.BecameAvailable += Refresh;
-        _game.BecameUnavailable += Refresh;
+        game.Target.Changed += Refresh;
+        game.BecameAvailable += Refresh;
+        game.BecameUnavailable += Refresh;
         GetViewport().SizeChanged += Place;
         Place();
         Refresh();
@@ -72,9 +72,9 @@ public partial class TargetFrame : Control
 
     public override void _ExitTree()
     {
-        _game.Target.Changed -= Refresh;
-        _game.BecameAvailable -= Refresh;
-        _game.BecameUnavailable -= Refresh;
+        game.Target.Changed -= Refresh;
+        game.BecameAvailable -= Refresh;
+        game.BecameUnavailable -= Refresh;
         GetViewport().SizeChanged -= Place;
     }
 
@@ -86,20 +86,20 @@ public partial class TargetFrame : Control
 
     private void ShowBar(string shown)
     {
-        if (_view.Get(HpBar) is { } normal) normal.Visible = shown == HpBar;
+        if (view.Get(HpBar) is { } normal) normal.Visible = shown == HpBar;
         foreach (var id in BarOfLook.Values)
-            if (_view.Get(id) is { } bar) bar.Visible = id == shown;
+            if (view.Get(id) is { } bar) bar.Visible = id == shown;
     }
 
     private void Refresh()
     {
-        var t = _game.Target;
-        Visible = _game.Available && t.Has;
+        var t = game.Target;
+        Visible = game.Available && t.Has;
         if (!Visible) return;
-        _view.SetText(NameText, t.Level > 0 ? $"{t.Name}  Lv.{t.Level}" : t.Name);
+        view.SetText(NameText, t.Level > 0 ? $"{t.Name}  Lv.{t.Level}" : t.Name);
         string bar = BarOfLook.TryGetValue(t.HpLook, out var id) ? id : HpBar;
         ShowBar(bar);
-        _view.SetProgress(bar, t.MaxHp > 0 ? t.Hp / (float)t.MaxHp : 1f);
-        _hpText.Text = t.MaxHp > 0 ? $"{t.Hp} / {t.MaxHp}" : "";
+        view.SetProgress(bar, t.MaxHp > 0 ? t.Hp / (float)t.MaxHp : 1f);
+        hpText.Text = t.MaxHp > 0 ? $"{t.Hp} / {t.MaxHp}" : "";
     }
 }

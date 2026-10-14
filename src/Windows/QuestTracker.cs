@@ -28,112 +28,112 @@ public partial class QuestTracker : Control
     private static readonly Color DoneColor = new(0.6f, 1f, 0.6f);
     private static readonly Color ShadowColor = new(0, 0, 0, 0.75f);
 
-    private readonly LayoutView _view;
-    private readonly LayoutNode _layout;
-    private readonly PluginGame _game;
-    private readonly Control? _rowBackground;
-    private readonly Control? _rowLine;
-    private readonly Control? _pageBar;
-    private readonly Control? _listBar;
-    private readonly List<Label> _objectives = new();
-    private readonly float _listTop;
-    private readonly float _listBottom;
-    private readonly float _pageBarHeight;
-    private readonly float _titleHeight;
-    private HudLayout? _hudLayout;
-    private int _page;
-    private bool _closed;
-    private bool _minimised;
-    private bool _objectivesOpen = true;
+    private readonly LayoutView view;
+    private readonly LayoutNode layout;
+    private readonly PluginGame game;
+    private readonly Control? rowBackground;
+    private readonly Control? rowLine;
+    private readonly Control? pageBar;
+    private readonly Control? listBar;
+    private readonly List<Label> objectives = new();
+    private readonly float listTop;
+    private readonly float listBottom;
+    private readonly float pageBarHeight;
+    private readonly float titleHeight;
+    private HudLayout? hudLayout;
+    private int page;
+    private bool closed;
+    private bool minimised;
+    private bool objectivesOpen = true;
 
     public QuestTracker()
     {
         var kit = Plugin.Kit;
-        _game = kit.Game;
-        _layout = kit.Layout(LayoutName);
-        _view = new LayoutView(kit, _layout);
+        game = kit.Game;
+        layout = kit.Layout(LayoutName);
+        view = new LayoutView(kit, layout);
         MouseFilter = MouseFilterEnum.Ignore;
-        Size = _layout.SizeVec;
-        AddChild(_view);
-        _rowBackground = _view.Get(RowBackgroundId);
-        _rowLine = _view.Get(RowLineId);
-        _pageBar = _view.Get(PageBarId);
-        _listBar = _view.Get(ListBarId);
-        var list = _layout.Find(ListBarId);
-        var page = _layout.Find(PageBarId);
-        var title = _layout.Find(TitleBarId);
-        _listTop = list != null ? list.Y - _layout.Y : 0f;
-        _listBottom = list != null ? list.Y + list.H - _layout.Y : 0f;
-        _pageBarHeight = page?.H ?? 0f;
-        _titleHeight = title != null ? title.Y + title.H - _layout.Y : 0f;
+        Size = layout.SizeVec;
+        AddChild(view);
+        rowBackground = view.Get(RowBackgroundId);
+        rowLine = view.Get(RowLineId);
+        pageBar = view.Get(PageBarId);
+        listBar = view.Get(ListBarId);
+        var list = layout.Find(ListBarId);
+        var pageNode = layout.Find(PageBarId);
+        var title = layout.Find(TitleBarId);
+        listTop = list != null ? list.Y - layout.Y : 0f;
+        listBottom = list != null ? list.Y + list.H - layout.Y : 0f;
+        pageBarHeight = pageNode?.H ?? 0f;
+        titleHeight = title != null ? title.Y + title.H - layout.Y : 0f;
 
-        _view.OnPressed("btn_close", () => { _closed = true; Visible = false; });
-        _view.OnPressed("btn_mini", () => SetMinimised(true));
-        _view.OnPressed("btn_max", () => SetMinimised(false));
-        _view.OnPressed(ObjectivesToggle, () => SetObjectivesOpen(!_objectivesOpen));
-        _view.OnPressed("btn_prevpage", () => Turn(-1));
-        _view.OnPressed("btn_nextpage", () => Turn(1));
-        _view.OnPressed("btn_seedopen", () => _game.Windows.Toggle(QuestsWindow));
+        view.OnPressed("btn_close", () => { closed = true; Visible = false; });
+        view.OnPressed("btn_mini", () => SetMinimised(true));
+        view.OnPressed("btn_max", () => SetMinimised(false));
+        view.OnPressed(ObjectivesToggle, () => SetObjectivesOpen(!objectivesOpen));
+        view.OnPressed("btn_prevpage", () => Turn(-1));
+        view.OnPressed("btn_nextpage", () => Turn(1));
+        view.OnPressed("btn_seedopen", () => game.Windows.Toggle(QuestsWindow));
         SetMinimised(false);
     }
 
     public override void _EnterTree()
     {
-        _game.Quests.Changed += Refresh;
-        _game.BecameAvailable += Refresh;
-        _hudLayout ??= HudLayout.Attach(this, LayoutId, _view.Get(TitleBarId), DefaultPosition);
+        game.Quests.Changed += Refresh;
+        game.BecameAvailable += Refresh;
+        hudLayout ??= HudLayout.Attach(this, LayoutId, view.Get(TitleBarId), DefaultPosition);
         Refresh();
     }
 
     public override void _ExitTree()
     {
-        _game.Quests.Changed -= Refresh;
-        _game.BecameAvailable -= Refresh;
+        game.Quests.Changed -= Refresh;
+        game.BecameAvailable -= Refresh;
     }
 
     private Vector2 DefaultPosition()
     {
         var room = GetViewport().GetVisibleRect().Size;
-        return new Vector2(room.X - _layout.W - ScreenMargin, MiniMapFrame.FrameHeight + 2 * ScreenMargin);
+        return new Vector2(room.X - layout.W - ScreenMargin, MiniMapFrame.FrameHeight + 2 * ScreenMargin);
     }
 
     private void Turn(int delta)
     {
-        int count = _game.Quests.Tracked.Count;
+        int count = game.Quests.Tracked.Count;
         if (count == 0) return;
-        _page = ((_page + delta) % count + count) % count;
+        page = ((page + delta) % count + count) % count;
         Refresh();
     }
 
     private void SetMinimised(bool minimised)
     {
-        _minimised = minimised;
-        _view.Hide(minimised ? "btn_mini" : "btn_max");
-        if (_view.Get(minimised ? "btn_max" : "btn_mini") is { } shown) shown.Visible = true;
+        this.minimised = minimised;
+        view.Hide(minimised ? "btn_mini" : "btn_max");
+        if (view.Get(minimised ? "btn_max" : "btn_mini") is { } shown) shown.Visible = true;
         Refresh();
     }
 
     private void SetObjectivesOpen(bool open)
     {
-        _objectivesOpen = open;
+        objectivesOpen = open;
         Refresh();
     }
 
     private void Refresh()
     {
-        var quests = _game.Quests.Tracked;
-        Visible = !_closed && quests.Count > 0;
-        foreach (var label in _objectives) label.QueueFree();
-        _objectives.Clear();
+        var quests = game.Quests.Tracked;
+        Visible = !closed && quests.Count > 0;
+        foreach (var label in objectives) label.QueueFree();
+        objectives.Clear();
         if (quests.Count == 0) return;
-        _page = Mathf.Clamp(_page, 0, quests.Count - 1);
-        var quest = quests[_page];
-        _view.SetText(TitleCountId, quests.Count.ToString());
-        _view.SetClippedText(QuestTitleId, quest.Title);
-        _view.SetText(PageNumberId, (_page + 1).ToString());
+        page = Mathf.Clamp(page, 0, quests.Count - 1);
+        var quest = quests[page];
+        view.SetText(TitleCountId, quests.Count.ToString());
+        view.SetClippedText(QuestTitleId, quest.Title);
+        view.SetText(PageNumberId, (page + 1).ToString());
 
-        float bottom = _listBottom;
-        if (_objectivesOpen && !_minimised)
+        float bottom = listBottom;
+        if (objectivesOpen && !minimised)
         {
             foreach (var line in quest.Objectives)
             {
@@ -151,8 +151,8 @@ public partial class QuestTracker : Control
                 label.AddThemeColorOverride("font_shadow_color", ShadowColor);
                 label.AddThemeConstantOverride("shadow_offset_x", 1);
                 label.AddThemeConstantOverride("shadow_offset_y", 1);
-                _view.AddChild(label);
-                _objectives.Add(label);
+                view.AddChild(label);
+                objectives.Add(label);
                 bottom += ObjectiveRowHeight;
             }
         }
@@ -161,18 +161,18 @@ public partial class QuestTracker : Control
 
     private void Layout(float contentBottom)
     {
-        bool body = !_minimised;
-        if (_pageBar != null) _pageBar.Visible = body;
-        if (_listBar != null) _listBar.Visible = body;
+        bool body = !minimised;
+        if (pageBar != null) pageBar.Visible = body;
+        if (listBar != null) listBar.Visible = body;
         if (!body)
         {
-            Size = new Vector2(_layout.W, _titleHeight);
+            Size = new Vector2(layout.W, titleHeight);
             return;
         }
-        float rowBottom = contentBottom - _listTop - 1f;
-        if (_pageBar != null) _pageBar.Position = new Vector2(_pageBar.Position.X, contentBottom);
-        if (_rowBackground != null) _rowBackground.Size = new Vector2(_rowBackground.Size.X, rowBottom);
-        if (_rowLine != null) _rowLine.Position = new Vector2(_rowLine.Position.X, rowBottom);
-        Size = new Vector2(_layout.W, contentBottom + _pageBarHeight);
+        float rowBottom = contentBottom - listTop - 1f;
+        if (pageBar != null) pageBar.Position = new Vector2(pageBar.Position.X, contentBottom);
+        if (rowBackground != null) rowBackground.Size = new Vector2(rowBackground.Size.X, rowBottom);
+        if (rowLine != null) rowLine.Position = new Vector2(rowLine.Position.X, rowBottom);
+        Size = new Vector2(layout.W, contentBottom + pageBarHeight);
     }
 }

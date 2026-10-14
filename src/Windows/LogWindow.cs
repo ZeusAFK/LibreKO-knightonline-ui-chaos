@@ -22,18 +22,18 @@ public partial class LogWindow : Control
     private const float ScrollStep = 32f;
     private const int DefaultFontSize = 11;
 
-    private readonly LayoutView _view;
-    private readonly PluginGame _game;
-    private readonly PluginSettings _settings;
-    private readonly LogText _log;
-    private readonly ColorRect _shade;
-    private readonly Control? _dragButton;
-    private readonly Vector2 _baseSize;
-    private readonly LayoutNode _layoutRoot;
-    private VerticalGrow? _grow;
-    private HorizontalGrow? _widen;
-    private bool _relaying;
-    private HudLayout? _hudLayout;
+    private readonly LayoutView view;
+    private readonly PluginGame game;
+    private readonly PluginSettings settings;
+    private readonly LogText log;
+    private readonly ColorRect shade;
+    private readonly Control? dragButton;
+    private readonly Vector2 baseSize;
+    private readonly LayoutNode layoutRoot;
+    private VerticalGrow? grow;
+    private HorizontalGrow? widen;
+    private bool relaying;
+    private HudLayout? hudLayout;
 
     private static readonly HashSet<string> StretchIds = new() { "base_msgwnd", "img_background", "img_background2", "scroll", "scroll_bar", "img_scrollback", "img_scroll3", "text_message", "base_area" };
 
@@ -42,54 +42,54 @@ public partial class LogWindow : Control
     private static readonly HashSet<string> WidenIds = new() { "base_msgwnd", "img_background", "img_background2", "text_message", "base_area" };
 
     private static readonly Vector2 MaximumScreenShare = new(0.3f, 0.7f);
-    private int _shadeIndex;
+    private int shadeIndex;
 
     public LogWindow()
     {
         var kit = Plugin.Kit;
-        _game = kit.Game;
+        game = kit.Game;
         var layout = kit.Layout(LayoutName);
-        _layoutRoot = layout;
-        _view = new LayoutView(kit, layout);
+        layoutRoot = layout;
+        view = new LayoutView(kit, layout);
         MouseFilter = MouseFilterEnum.Ignore;
         Size = layout.SizeVec;
-        AddChild(_view);
-        _settings = kit.Context.Settings;
-        _view.Hide("img_sizechange", "img_sizeline", "btn_msgwnd_lock");
-        _view.FadeOut(OpaqueBackgroundId, BackgroundId);
-        var background = _view.Get(BackgroundId);
-        _shade = new ColorRect
+        AddChild(view);
+        settings = kit.Context.Settings;
+        view.Hide("img_sizechange", "img_sizeline", "btn_msgwnd_lock");
+        view.FadeOut(OpaqueBackgroundId, BackgroundId);
+        var background = view.Get(BackgroundId);
+        shade = new ColorRect
         {
             Position = background?.Position ?? Vector2.Zero,
             Size = background?.Size ?? layout.SizeVec,
             MouseFilter = MouseFilterEnum.Ignore,
         };
-        (background?.GetParent() ?? (Node)_view).AddChild(_shade);
-        if (background != null) _shade.GetParent().MoveChild(_shade, background.GetIndex() + 1);
-        _shadeIndex = Math.Clamp(_settings.GetInt(SettingShadeIndex, DefaultShadeIndex), 0, ShadeLevels.Length - 1);
+        (background?.GetParent() ?? (Node)view).AddChild(shade);
+        if (background != null) shade.GetParent().MoveChild(shade, background.GetIndex() + 1);
+        shadeIndex = Math.Clamp(settings.GetInt(SettingShadeIndex, DefaultShadeIndex), 0, ShadeLevels.Length - 1);
         ApplyShade();
-        _dragButton = _view.Get(OptionButton);
+        dragButton = view.Get(OptionButton);
 
-        var area = _view.Get(TextId);
+        var area = view.Get(TextId);
         var node = layout.Find(TextId);
-        _log = new LogText(node != null ? UiKit.FontSize(node) : DefaultFontSize, node?.Color ?? Colors.White, kit.Regular)
+        log = new LogText(node != null ? UiKit.FontSize(node) : DefaultFontSize, node?.Color ?? Colors.White, kit.Regular)
         {
             Position = area?.Position ?? Vector2.Zero,
             Size = area?.Size ?? new Vector2(248, 130),
             MouseFilter = MouseFilterEnum.Stop,
         };
         if (area != null) area.Visible = false;
-        (area?.GetParent() ?? (Node)_view).AddChild(_log);
+        (area?.GetParent() ?? (Node)view).AddChild(log);
 
         if (layout.Find(ScrollGroup) is { } scroll)
         {
-            _view.OnPressed(scroll, "btn_scroll_Up", () => _log.Scroll(ScrollStep));
+            view.OnPressed(scroll, "btn_scroll_Up", () => log.Scroll(ScrollStep));
             foreach (var child in scroll.Children)
-                if (child.IsButton && child.Id.Length == 0 && _view.ControlOf(child) is BaseButton down)
-                    down.Pressed += () => _log.Scroll(-ScrollStep);
+                if (child.IsButton && child.Id.Length == 0 && view.ControlOf(child) is BaseButton down)
+                    down.Pressed += () => log.Scroll(-ScrollStep);
         }
 
-        _baseSize = Size;
+        baseSize = Size;
         Resized += Relayout;
         Callable.From(CaptureGrow).CallDeferred();
     }
@@ -97,57 +97,57 @@ public partial class LogWindow : Control
     private void CaptureGrow()
     {
         var grow = new VerticalGrow();
-        grow.Add(_view, VerticalGrow.Mode.Stretch);
-        var scrollDown = _layoutRoot.Find("scroll") is { } scroll
-            ? scroll.Children.Where(n => n.IsButton && n.Id.Length == 0).Select(n => _view.ControlOf(n)).FirstOrDefault()
+        grow.Add(view, VerticalGrow.Mode.Stretch);
+        var scrollDown = layoutRoot.Find("scroll") is { } scroll
+            ? scroll.Children.Where(n => n.IsButton && n.Id.Length == 0).Select(n => view.ControlOf(n)).FirstOrDefault()
             : null;
-        foreach (var (node, control) in _view.Where(_ => true))
+        foreach (var (node, control) in view.Where(_ => true))
             grow.Add(control, control == scrollDown ? VerticalGrow.Mode.Shift
                 : StretchIds.Contains(node.Id) ? VerticalGrow.Mode.Stretch
                 : ShiftIds.Contains(node.Id) ? VerticalGrow.Mode.Shift
                 : VerticalGrow.Mode.Stay);
-        grow.Add(_shade, VerticalGrow.Mode.Stretch);
-        grow.Add(_log, VerticalGrow.Mode.Stretch);
-        foreach (var parent in grow.Stretched.Where(c => c != _shade && c != _log))
+        grow.Add(shade, VerticalGrow.Mode.Stretch);
+        grow.Add(log, VerticalGrow.Mode.Stretch);
+        foreach (var parent in grow.Stretched.Where(c => c != shade && c != log))
             grow.ShiftBottomBand(parent);
-        _grow = grow;
+        this.grow = grow;
 
         var widen = new HorizontalGrow();
-        widen.Add(_view, HorizontalGrow.Mode.Stretch);
-        foreach (var (node, control) in _view.Where(_ => true))
+        widen.Add(view, HorizontalGrow.Mode.Stretch);
+        foreach (var (node, control) in view.Where(_ => true))
             widen.Add(control, WidenIds.Contains(node.Id) ? HorizontalGrow.Mode.Stretch : HorizontalGrow.Mode.Stay);
-        widen.Add(_shade, HorizontalGrow.Mode.Stretch);
-        widen.Add(_log, HorizontalGrow.Mode.Stretch);
-        foreach (var parent in widen.Stretched.Where(c => c != _shade && c != _log))
+        widen.Add(shade, HorizontalGrow.Mode.Stretch);
+        widen.Add(log, HorizontalGrow.Mode.Stretch);
+        foreach (var parent in widen.Stretched.Where(c => c != shade && c != log))
             widen.ShiftRightHalf(parent);
-        _widen = widen;
+        this.widen = widen;
         Relayout();
     }
 
     private void Relayout()
     {
-        if (_grow == null || _relaying) return;
-        _relaying = true;
-        _grow.Apply(Mathf.Max(0f, Size.Y - _baseSize.Y));
-        _widen?.Apply(Mathf.Max(0f, Size.X - _baseSize.X));
-        _relaying = false;
+        if (grow == null || relaying) return;
+        relaying = true;
+        grow.Apply(Mathf.Max(0f, Size.Y - baseSize.Y));
+        widen?.Apply(Mathf.Max(0f, Size.X - baseSize.X));
+        relaying = false;
     }
 
     public override void _EnterTree()
     {
-        _game.Log.LineAdded += OnLine;
-        _game.BecameAvailable += Reload;
-        _hudLayout ??= HudLayout.Attach(this, LayoutId, _dragButton, DefaultPosition, resizable: true,
-            defaultSize: _baseSize, minimumSize: _baseSize, resizeCorner: HudLayout.Corner.TopLeft,
+        game.Log.LineAdded += OnLine;
+        game.BecameAvailable += Reload;
+        hudLayout ??= HudLayout.Attach(this, LayoutId, dragButton, DefaultPosition, resizable: true,
+            defaultSize: baseSize, minimumSize: baseSize, resizeCorner: HudLayout.Corner.TopLeft,
             backgroundOpacityChanged: _ => CycleShade());
-        _hudLayout.MaximumViewportShare = MaximumScreenShare;
+        hudLayout.MaximumViewportShare = MaximumScreenShare;
         Reload();
     }
 
     public override void _ExitTree()
     {
-        _game.Log.LineAdded -= OnLine;
-        _game.BecameAvailable -= Reload;
+        game.Log.LineAdded -= OnLine;
+        game.BecameAvailable -= Reload;
     }
 
     private Vector2 DefaultPosition()
@@ -158,16 +158,16 @@ public partial class LogWindow : Control
 
     private void CycleShade()
     {
-        _shadeIndex = (_shadeIndex + 1) % ShadeLevels.Length;
-        _settings.SetInt(SettingShadeIndex, _shadeIndex);
+        shadeIndex = (shadeIndex + 1) % ShadeLevels.Length;
+        settings.SetInt(SettingShadeIndex, shadeIndex);
         ApplyShade();
     }
 
-    private void ApplyShade() => _shade.Color = new Color(0, 0, 0, ShadeLevels[_shadeIndex]);
+    private void ApplyShade() => shade.Color = new Color(0, 0, 0, ShadeLevels[shadeIndex]);
 
-    private void Reload() => _log.Set(_game.Log.History.Select(Format));
+    private void Reload() => log.Set(game.Log.History.Select(Format));
 
-    private void OnLine(GameLogLine line) => _log.Append(Format(line));
+    private void OnLine(GameLogLine line) => log.Append(Format(line));
 
     private static string Format(GameLogLine line) =>
         $"[color=#{line.Color.ToHtml(false)}]{line.Text.Replace("[", "[lb]")}[/color]";
