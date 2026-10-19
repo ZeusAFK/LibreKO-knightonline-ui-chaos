@@ -66,7 +66,7 @@ public partial class Taskbar : Control
         view.OnPressed(expanded, TownButton, () => game.Commands.GoTown());
         view.OnPressed(expanded, TradeButton, () => game.Commands.TradeWithTarget());
         view.OnPressed(expanded, SitButton, () => game.Commands.ToggleSit());
-        view.OnPressed(menu, MenuButton, () => LibreKO.SettingsPanel.Open(GetTree().Root));
+        view.OnPressed(menu, MenuButton, () => game.Commands.OpenSettings());
         view.SetTextAll(NoticeText, "");
     }
 
